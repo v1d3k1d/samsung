@@ -8,6 +8,7 @@ import streamlit as st
 from PIL import Image
 from ultralytics import YOLO
 from shapely.geometry import Polygon
+from matplotlib.colors import to_hex
 
 
 def trim_whitespace(image_path):
@@ -98,9 +99,40 @@ def create_folders_and_file():
     img.save(os.path.join(path , uploaded_file.name))
 
 
-def print_colors(colors):
+def rgb_to_str(colors):
+    temp_arr = []
     for color in colors:
-        st.write(color)
+        temp_arr.append(f"R:{color[0]} G:{color[1]} B:{color[2]}")
+    return temp_arr
+
+
+def rgb_to_hex(colors):
+    temp_arr = []
+    for color in colors:
+        hex_color = to_hex(tuple(v/255. for v in color))
+        temp_arr.append(hex_color)
+    return temp_arr
+
+
+def print_colors(colors_str, colors_hex):
+    for i in range(0, len(colors_str)):
+        title = f'<p style="font-family:sans-serif; color:White; font-size:25px;">{colors_str[i]}</p>'
+        st.markdown(title, unsafe_allow_html=True)
+        
+        color_picker_design = f"""
+            <div style="
+            height:50px; 
+            width:180px; 
+            background-color:{colors_hex[i]}; 
+            border-radius: 5px;
+            color: #003366; 
+            border: solid 1px gray;
+            margin: 0px 0px 15px;
+            "></div>
+            """
+        st.markdown(color_picker_design, unsafe_allow_html=True)
+        
+        #color = st.color_picker('Цвет: ', f'{colors_hex[i]}', label_visibility="collapsed")
 
 
 model = YOLO('best.pt')
@@ -120,4 +152,8 @@ result = st.button('Распознать изображение')
 if result:
     predict_image()
     all_colors = get_all_colors()
-    print_colors(all_colors)
+
+    all_colors_str = rgb_to_str(all_colors)
+    all_colors_hex = rgb_to_hex(all_colors)
+
+    print_colors(all_colors_str, all_colors_hex)
